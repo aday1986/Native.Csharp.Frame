@@ -27,9 +27,9 @@ namespace Leo.Native.Message
             {
                 string sql = "select FromQQ as QQId,Count(1) as 'Count',@start as StartDate,@end as EndDate " +
                     "from groupmessage " +
-                    "where MsgDate>=@start and MsgDate<=@end  " +
+                    "where MsgDate>=@start and MsgDate<=@end and FromGroup=@groupId  " +
                     "group by qqid order by Count desc limit 0,@top";
-                return db.Query<MessageCount>(sql, new { start, end, top });
+                return db.Query<MessageCount>(sql, new { start, end, top,groupId });
             }
         }
     }

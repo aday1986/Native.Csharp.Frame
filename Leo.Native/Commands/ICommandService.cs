@@ -43,7 +43,7 @@ namespace Leo.Native.Commands
         /// <returns></returns>
         bool Execute(Command command, out string message);
 
-        bool IsCommand(string message,out string commandName);
+        bool IsCommand(string message,out string taskName);
 
    
     }

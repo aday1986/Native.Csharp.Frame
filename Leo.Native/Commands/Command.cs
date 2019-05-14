@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Leo.Native.Commands
 {
@@ -10,7 +11,7 @@ namespace Leo.Native.Commands
         /// <summary>
         /// 默认分隔符。
         /// </summary>
-        public const char Separator= '~';
+        public const char Separator= '#';
 
         public DateTime SendDate { get; set; }
 
@@ -18,11 +19,9 @@ namespace Leo.Native.Commands
 
         public long QQId { get; set; }
 
-        public string TaskName { get; set; }
-
         public string CommandText { get; set; }
 
-      
+        public string TaskName { get; set; }
 
     }
 

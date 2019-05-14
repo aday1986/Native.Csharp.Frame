@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Native.Csharp.Sdk.Cqp;
+using Native.Csharp.Sdk.Cqp.Model;
+using Native.Csharp.Sdk.Cqp.Enum;
 
 namespace Leo.Native.Commands
 {
@@ -57,31 +60,34 @@ namespace Leo.Native.Commands
         public bool Execute(Command command, out string message)
         {
             bool result = false;
-            if (tasks.TryGetValue(command.TaskName, out Task action))
-            {
-                if (!action.NeedValidation || HasAuthority(command))
+            message = string.Empty;
+          
+                if (tasks.TryGetValue(command.TaskName, out Task action))
                 {
-                    try
+                    if (!action.NeedValidation || HasAuthority(command))
                     {
-                        message = action.Func?.Invoke(command);
-                        result = true;
+                        try
+                        {
+                            message = action.Func?.Invoke(command);
+                            result = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            message = ex.Message;
+                            result = false;
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        message = ex.Message;
+                        message = $"您没有调用[{command.TaskName}]的权限。";
                         result = false;
                     }
                 }
                 else
                 {
-                    message = $"您没有调用[{command.TaskName}]的权限。";
-                    result = false;
+                    message = $"没有[{command.TaskName}]这个命令。";
                 }
-            }
-            else
-            {
-                message = $"没有[{command.TaskName}]这个命令。";
-            }
+           
             return result;
         }
 

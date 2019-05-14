@@ -24,6 +24,7 @@ namespace Native.Csharp.App.Event
 
 			Common.AppDirectory = Common.CqApi.GetAppDirectory ();  // 获取应用数据目录 (无需存储数据时, 请将此行注释)
 
+            Leo.Native.Startup.CqApi = Common.CqApi;
 
 			// 返回如：D:\CoolQ\app\com.example.demo\
 			// 应用的所有数据、配置【必须】存放于此目录，避免给用户带来困扰。

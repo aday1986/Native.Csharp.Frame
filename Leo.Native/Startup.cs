@@ -9,11 +9,13 @@ using Leo.Config;
 using Leo.Native.Commands;
 using Leo.Native.Message;
 using System.Linq;
+using Native.Csharp.Sdk.Cqp;
 
 namespace Leo.Native
 {
     public class Startup
     {
+        public static CqApi CqApi { get; set; }
         public static IServiceProvider ServiceProvider { get; set; }
         static Startup()
         {
@@ -24,8 +26,8 @@ namespace Leo.Native
             // "D:\VS\Leo\Leo.Native\Leo.Native.Tests\bin\Debug\Data"
             string path = $"DataSource={dir}/leo.db";
             services.AddDapperRepository(new SqliteDbProvider(path));
-            //services.AddScoped<ICommandService, CommandService>();
-            //services.AddSingleton<ITaskCollection,TaskCollection>();
+            services.AddScoped<ICommandService, CommandService>();
+            services.AddSingleton<ITaskCollection,TaskCollection>();
             services.AddScoped<IGroupMessageService, GroupMessageService>();
             ServiceProvider = services.BuildServiceProvider();
         }

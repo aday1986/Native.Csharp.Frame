@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Leo\Leo.csproj" />
+    <ProjectReference Include="..\Native.Csharp.Sdk\Native.Csharp.Sdk.csproj" />
   </ItemGroup>
 
   <ItemGroup>
