@@ -41,6 +41,19 @@ namespace Leo.Native.Commands
                    NeedValidation = false,
                    Func = HUOYUECHAXUN
                });
+
+            this.Add("常用网站",
+              new Task()
+              {
+                  TaskName = "常用网站",
+                  NeedValidation = false,
+                  Func = CHANGYONGWANGZHAN
+              });
+        }
+
+       private  string CHANGYONGWANGZHAN(Command command)
+        {
+            return String.Empty;
         }
 
         /// <summary>

@@ -12,8 +12,14 @@ namespace Leo.Native.Tests
         [TestMethod]
         public void Add()
         {
+            var db = ServiceProvider.GetService<IDbProvider>().CreateConnection();
+            Console.WriteLine(db.ConnectionString);
             var service =ServiceProvider.GetService<IGroupMessageService>();
-            Assert.IsTrue(service.Add(new GroupMessage()));
+            for (int i = 0; i < 1000; i++)
+            {
+                service.AddAsync(new GroupMessage());
+            }
+         
         }
 
         [TestMethod]

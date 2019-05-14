@@ -33,40 +33,47 @@ namespace Native.Csharp.App.Event
         /// <param name="e">事件的附加参数</param>
         public void ReceiveGroupMessage(object sender, GroupMessageEventArgs e)
         {
-            Debug.Print(e.Msg);
-            messageService.Add(new GroupMessage()
+            try
             {
-                MsgDate = DateTime.Now,
-                MsgId = e.MsgId,
-                FromGroup = e.FromGroup,
-                FromQQ = e.FromQQ,
-                IsAnonymousMsg = e.IsAnonymousMsg,
-                Msg = e.Msg
-            });
-
-            if (commandService.IsCommand(e.Msg,out string taskName))
-            {
-                //暂时只让管理员允许发送
-                if (Startup.CqApi.GetMemberInfo(e.FromGroup, e.FromQQ, out GroupMember member) == 0
-                    && member.PermitType != PermitType.None)
+                messageService.AddAsync(new GroupMessage()
                 {
-                    if (commandService.Execute(new Command()
+                    MsgDate = DateTime.Now,
+                    MsgId = e.MsgId,
+                    FromGroup = e.FromGroup,
+                    FromQQ = e.FromQQ,
+                    IsAnonymousMsg = e.IsAnonymousMsg,
+                    Msg = e.Msg
+                });
+
+                if (commandService.IsCommand(e.Msg, out string taskName))
+                {
+                    //暂时只让管理员允许发送
+                    if (Startup.CqApi.GetMemberInfo(e.FromGroup, e.FromQQ, out GroupMember member) == 0
+                        && member.PermitType != PermitType.None)
                     {
-                        CommandText = e.Msg,
-                        GroupId = e.FromGroup,
-                        QQId = e.FromQQ,
-                        SendDate = DateTime.Now,
-                        TaskName = taskName
-                    }, out string message))
-                    {
-                        Common.CqApi.SendGroupMessage(e.FromGroup, message);
-                    }
-                    else //未能执行命令。
-                    {
-                        Common.CqApi.SendPrivateMessage(e.FromQQ, message);
+                        if (commandService.Execute(new Command()
+                        {
+                            CommandText = e.Msg,
+                            GroupId = e.FromGroup,
+                            QQId = e.FromQQ,
+                            SendDate = DateTime.Now,
+                            TaskName = taskName
+                        }, out string message))
+                        {
+                            Common.CqApi.SendGroupMessage(e.FromGroup, message ?? "无返回数据。");
+                        }
+                        else //未能执行命令。
+                        {
+                            Common.CqApi.SendPrivateMessage(e.FromQQ, message ?? "无返回数据");
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Common.CqApi.AddLoger(LogerLevel.Error, "", ex.Message);
+            }
+          
 
         }
 

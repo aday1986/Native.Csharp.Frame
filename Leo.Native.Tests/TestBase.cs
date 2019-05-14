@@ -10,7 +10,7 @@ namespace Leo.Native.Tests
     {
       public   TestBase()
         {
-             ServiceProvider = Leo.Native.Startup.ServiceProvider;
+             ServiceProvider = Startup.ServiceProvider;
         }
         protected  IServiceProvider ServiceProvider { get; set; }
     }

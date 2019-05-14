@@ -1,6 +1,7 @@
 ﻿using Leo.ThirdParty.Dapper;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Leo.Native.Message
 {
@@ -13,12 +14,19 @@ namespace Leo.Native.Message
         {
             this.repository = repository;
             this.dbProvider = dbProvider;
+            queue = new Util.WorkQueue<GroupMessage>(1000, (s, e) => {
+                repository.AddRange(e.Item);
+                repository.SaveChanges();
+            });
         }
 
-        public bool Add(GroupMessage message)
+        private Leo.Util.WorkQueue<GroupMessage> queue = null;
+        public async void AddAsync(GroupMessage message)
         {
-            repository.Add(message);
-            return repository.SaveChanges() > 0;
+
+           await  System.Threading.Tasks.Task.Run(() => { queue.EnqueueItem(message); });
+
+
         }
 
         public IEnumerable<MessageCount> GetTopMessageCounts(int top, long groupId, DateTime start, DateTime end)
