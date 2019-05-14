@@ -1,6 +1,7 @@
 ﻿using Leo.Data;
 using Leo.Data.Dapper;
 using Leo.Logging.File;
+using Leo.Logging.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -15,32 +16,24 @@ namespace Leo.Native
 {
     public class Startup
     {
+        public const string AppId = "cn.zkbar.leo";
         public static CqApi CqApi { get; set; }
         public static IServiceProvider ServiceProvider { get; set; }
         static Startup()
         {
 
             IServiceCollection services = new ServiceCollection();
-            string dir = $"{AppDomain.CurrentDomain.BaseDirectory }\\Data";
-            //string dir = $"{AppDomain.CurrentDomain.BaseDirectory }Data";
-            // "D:\VS\Leo\Leo.Native\Leo.Native.Tests\bin\Debug\Data"
-            string path = $"DataSource={dir}/leo.db";
-            services.AddDapperRepository(new SqliteDbProvider(path));
+           
+            string dir = $"{AppDomain.CurrentDomain.BaseDirectory }\\Data\\{AppId}";
+            services.AddDapperRepository(new SqliteDbProvider($"DataSource={dir}\\leo.db"));
+            services.AddFileLogging($"{dir}\\log");
+            services.AddSqliteLogging($"DataSource={dir}\\log\\log.db");
             services.AddScoped<ICommandService, CommandService>();
             services.AddSingleton<ITaskCollection,TaskCollection>();
             services.AddScoped<IGroupMessageService, GroupMessageService>();
             ServiceProvider = services.BuildServiceProvider();
         }
 
-        //public static string GetCount(Command cmd)
-        //{
-        //    var repository = provider.GetService<IRepository<GroupMessage>>();
-        //    List<Condition> conditions = new List<Condition>();
-        //    conditions.Add(new Condition() { Key = nameof(GroupMessage.FromQQ), Value = cmd.QQId, ConditionType = ConditionEnum.Equal });
-        //    conditions.Add(new Condition() { Key = nameof(GroupMessage.FromGroup), Value = cmd.GroupId, ConditionType = ConditionEnum.Equal });
-        //    var resul = repository.Query(conditions);
-        //    return $"您在本群中总共发送了{resul.Count()}条信息。";
-        //}
     }
 
     public static class ServiceProviderEx

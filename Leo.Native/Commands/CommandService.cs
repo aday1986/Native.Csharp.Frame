@@ -11,17 +11,17 @@ namespace Leo.Native.Commands
 
     public class CommandService : ICommandService
     {
-      
+
         private readonly IRepository<TaskAuthority> repository;
         private readonly ITaskCollection tasks;
 
-        public CommandService(IRepository<TaskAuthority> repository,ITaskCollection tasks)
+        public CommandService(IRepository<TaskAuthority> repository, ITaskCollection tasks)
         {
             this.repository = repository;
             this.tasks = tasks;
         }
 
-        public bool AddTaskAuthority(TaskAuthority  taskAuthority)
+        public bool AddTaskAuthority(TaskAuthority taskAuthority)
         {
             repository.Add(taskAuthority);
             return repository.SaveChanges() > 0;
@@ -49,56 +49,57 @@ namespace Leo.Native.Commands
             return repository.Query(conditions);
         }
 
-        public bool RemoveTaskAuthority(TaskAuthority  taskAuthority)
+        public bool RemoveTaskAuthority(TaskAuthority taskAuthority)
         {
             repository.Remove(taskAuthority);
             return repository.SaveChanges() > 0;
         }
 
-
-
-        public bool Execute(Command command, out string message)
+        public bool TryExecute(Command command, out string message)
         {
             bool result = false;
             message = string.Empty;
-          
-                if (tasks.TryGetValue(command.TaskName, out Task action))
+            if (tasks.TryGetValue(command.TaskName, out Task action))
+            {
+                if (!action.NeedValidation || HasAuthority(command))
                 {
-                    if (!action.NeedValidation || HasAuthority(command))
+                    try
                     {
-                        try
-                        {
-                            message = action.Func?.Invoke(command);
-                            result = true;
-                        }
-                        catch (Exception ex)
-                        {
-                            message = ex.Message;
-                            result = false;
-                        }
+                        message = action.Func?.Invoke(command);
+                        result = true;
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        message = $"您没有调用[{command.TaskName}]的权限。";
+                        message = ex.Message;
                         result = false;
                     }
                 }
                 else
                 {
-                    message = $"没有[{command.TaskName}]这个命令。";
+                    message = $"您没有调用[{command.TaskName}]的权限。";
+                    result = false;
                 }
-           
+            }
+            else
+            {
+                message = $"没有[{command.TaskName}]这个命令。";
+            }
+
             return result;
         }
 
-        public bool IsCommand(string message, out string commandName)
+        public bool TryGetTaskName(string message, out string taskName)
         {
-            commandName = string.Empty;
+            taskName = string.Empty;
             if (message.StartsWith(Command.Separator.ToString()))
             {
-                commandName = message.Remove(0, 1).Split(Command.Separator).FirstOrDefault().Trim();
+                taskName = message.Remove(0, 1).Split(Command.Separator).FirstOrDefault().Trim();
+                return true;
             }
-            return !string.IsNullOrEmpty(commandName);
+            else
+            {
+                return false;
+            }
         }
     }
 }

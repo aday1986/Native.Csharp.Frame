@@ -37,13 +37,20 @@ namespace Leo.Native.Commands
         bool HasAuthority(Command command);
 
         /// <summary>
-        /// 执行命令。
+        /// 判断命令是否存在，是有拥有执行权限，执行命令。
         /// </summary>
         /// <param name="command"></param>
-        /// <returns></returns>
-        bool Execute(Command command, out string message);
+        /// <param name="message">返回的信息。</param>
+        /// <returns>是否执行成功。</returns>
+        bool TryExecute(Command command, out string message);
 
-        bool IsCommand(string message,out string taskName);
+        /// <summary>
+        /// 判断是否是命令任务名称格式。
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="taskName"></param>
+        /// <returns></returns>
+        bool TryGetTaskName(string message,out string taskName);
 
    
     }

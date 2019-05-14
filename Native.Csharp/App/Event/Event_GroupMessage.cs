@@ -11,6 +11,8 @@ using Leo.Native.Message;
 using Leo.Native.Commands;
 using Leo.Native;
 using Native.Csharp.Sdk.Cqp.Enum;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Native.Csharp.App.Event
 {
@@ -18,11 +20,13 @@ namespace Native.Csharp.App.Event
     {
         private readonly IGroupMessageService messageService;
         private readonly ICommandService commandService;
+        private readonly ILogger<Event_GroupMessage> logger;
 
         public Event_GroupMessage()
         {
             this.messageService = Startup.ServiceProvider.GetService<IGroupMessageService>();
             this.commandService = Startup.ServiceProvider.GetService<ICommandService>();
+            this.logger =Startup.ServiceProvider.GetService<ILogger<Event_GroupMessage>>();
         }
         #region --公开方法--
         /// <summary>
@@ -33,48 +37,47 @@ namespace Native.Csharp.App.Event
         /// <param name="e">事件的附加参数</param>
         public void ReceiveGroupMessage(object sender, GroupMessageEventArgs e)
         {
-            try
-            {
-                messageService.AddAsync(new GroupMessage()
+            System.Threading.Tasks.Task.Run(() => {
+                try
                 {
-                    MsgDate = DateTime.Now,
-                    MsgId = e.MsgId,
-                    FromGroup = e.FromGroup,
-                    FromQQ = e.FromQQ,
-                    IsAnonymousMsg = e.IsAnonymousMsg,
-                    Msg = e.Msg
-                });
-
-                if (commandService.IsCommand(e.Msg, out string taskName))
-                {
-                    //暂时只让管理员允许发送
-                    if (Startup.CqApi.GetMemberInfo(e.FromGroup, e.FromQQ, out GroupMember member) == 0
-                        && member.PermitType != PermitType.None)
+                    messageService.AddAsync(new GroupMessage()
                     {
-                        if (commandService.Execute(new Command()
+                        MsgDate = DateTime.Now,
+                        MsgId = e.MsgId,
+                        FromGroup = e.FromGroup,
+                        FromQQ = e.FromQQ,
+                        IsAnonymousMsg = e.IsAnonymousMsg,
+                        Msg = e.Msg
+                    });
+                    if (commandService.TryGetTaskName(e.Msg, out string taskName))
+                    {
+                        //暂时只让管理员允许发送
+                        if (Startup.CqApi.GetMemberInfo(e.FromGroup, e.FromQQ, out GroupMember member) == 0
+                            && member.PermitType != PermitType.None)
                         {
-                            CommandText = e.Msg,
-                            GroupId = e.FromGroup,
-                            QQId = e.FromQQ,
-                            SendDate = DateTime.Now,
-                            TaskName = taskName
-                        }, out string message))
-                        {
-                            Common.CqApi.SendGroupMessage(e.FromGroup, message ?? "无返回数据。");
-                        }
-                        else //未能执行命令。
-                        {
-                            Common.CqApi.SendPrivateMessage(e.FromQQ, message ?? "无返回数据");
+                            if (commandService.TryExecute(new Command()
+                            {
+                                CommandText = e.Msg,
+                                GroupId = e.FromGroup,
+                                QQId = e.FromQQ,
+                                SendDate = DateTime.Now,
+                                TaskName = taskName
+                            }, out string message))
+                            {
+                                Common.CqApi.SendGroupMessage(e.FromGroup, message ?? "无返回数据。");
+                            }
+                            else //未能执行命令。
+                            {
+                                Common.CqApi.SendPrivateMessage(e.FromQQ, message ?? "无返回数据");
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Common.CqApi.AddLoger(LogerLevel.Error, "", ex.Message);
-            }
-          
-
+                catch (Exception ex)
+                {
+                    logger.LogError(ex.Message);
+                }
+            });
         }
 
         /// <summary>
